@@ -1,0 +1,1 @@
+# AuthOpenIDConnect - LimeSurvey Auth Plugin
