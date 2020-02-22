@@ -32,6 +32,7 @@
         public function init(){
             $this->subscribe('beforeLogin');
             $this->subscribe('newUserSession');
+            $this->subscribe('afterLogout');
         }
 
         public function beforeLogin(){
@@ -55,7 +56,7 @@
                 $familyName = $oidc->requestUserInfo('family_name');
 
                 $user = $this->api->getUserByName($username);
-                
+
                 if(empty($user)){
                     $user = new User;
                     $user->users_name = $username;
@@ -93,6 +94,10 @@
             } else {
                 $this->setAuthSuccess($user);
             }
+        }
+
+        public function afterLogout(){
+            Yii::app()->getRequest()->redirect('/', true, 302);
         }
     }
 ?>
