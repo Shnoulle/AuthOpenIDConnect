@@ -63,7 +63,7 @@
                     $user->setPassword(createPassword());
                     $user->full_name = $givenName.' '.$familyName;
                     $user->parent_id = 1;
-                    $user->lang = 'en';
+                    $user->lang = $this->api->getConfigKey('defaultlang', 'en');
                     $user->email = $email;
     
                     if(!$user->save()){
