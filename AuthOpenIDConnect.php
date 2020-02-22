@@ -45,7 +45,6 @@
             $oidc->setRedirectURL($redirectURL);
             
             if(isset($_REQUEST['error'])){
-                $this->log('Authentication failed - received error from ID Provider.');
                 return;
             }
 
@@ -67,11 +66,10 @@
                     $user->email = $email;
     
                     if(!$user->save()){
-                        $this->log('User could not be created.');
+                        // Couldn't create user, navigate to authdb login.
                         return;
                     }
-    
-                    $this->log('User was successfully created.');
+                    // User successfully created.
                 }
 
                 $this->setUsername($user->users_name);
