@@ -5,6 +5,10 @@
     class AuthOpenIDConnect extends AuthPluginBase {
         protected $storage = 'DbStorage';
         protected $settings = [
+            'info' => [
+                'type' => 'info',
+                'content' => '<h1>OpenID Connect</h1><p>Please provide the following settings.</br>If necessary settings are missing, the default authdb login will be shown.</p>'
+            ],
             'providerURL' => [
                 'type' => 'string',
                 'label' => 'Provider URL',
@@ -23,6 +27,7 @@
             'redirectURL' => [
                 'type' => 'string',
                 'label' => 'Redirect URL',
+                'help' => 'This URL is automatically set on plugin activation. Hand it to your ID Provider if needed.',
                 'default' => '',
             ]
         ];
@@ -40,6 +45,11 @@
             $clientID = $this->get('clientID', null, null, false);
             $clientSecret = $this->get('clientSecret', null, null, false);
             $redirectURL = $this->get('redirectURL', null, null, false);
+
+            if(!$providerURL || !$clientSecret || !$clientID || !$redirectURL){
+                // Display authdb login if necessary plugin settings are missing.
+                return;
+            }
 
             $oidc = new OpenIDConnectClient($providerURL, $clientID, $clientSecret);
             $oidc->setRedirectURL($redirectURL);
