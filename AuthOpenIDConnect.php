@@ -30,9 +30,15 @@
         static protected $name = 'AuthOpenIDConnect';
 
         public function init(){
+            $this->subscribe('beforeActivate');
             $this->subscribe('beforeLogin');
             $this->subscribe('newUserSession');
             $this->subscribe('afterLogout');
+        }
+
+        public function beforeActivate(){
+            $baseURL = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . "{$_SERVER['HTTP_HOST']}";
+            $this->set('redirectURL', $baseURL . '/index.php/admin/authentication/sa/login');
         }
 
         public function beforeLogin(){
