@@ -10,9 +10,9 @@
                 'label' => 'Provider URL',
                 'default' => ''
             ],
-            'client' => [
+            'clientID' => [
                 'type' => 'string',
-                'label' => 'Client',
+                'label' => 'Client ID',
                 'default' => ''
             ],
             'clientSecret' => [
