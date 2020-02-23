@@ -12,22 +12,25 @@
             'providerURL' => [
                 'type' => 'string',
                 'label' => 'Provider URL',
+                'help' => 'Required',
                 'default' => ''
             ],
             'clientID' => [
                 'type' => 'string',
                 'label' => 'Client ID',
+                'help' => 'Required',
                 'default' => ''
             ],
             'clientSecret' => [
                 'type' => 'string',
                 'label' => 'Client Secret',
+                'help' => 'Required',
                 'default' => ''
             ],
             'redirectURL' => [
                 'type' => 'string',
                 'label' => 'Redirect URL',
-                'help' => 'This URL is automatically set on plugin activation. Hand it to your ID Provider if needed.',
+                'help' => 'The Redirect URL is automatically set on plugin activation.',
                 'default' => '',
             ]
         ];
@@ -35,9 +38,15 @@
         static protected $name = 'AuthOpenIDConnect';
 
         public function init(){
+            $this->subscribe('beforeActivate');
             $this->subscribe('beforeLogin');
             $this->subscribe('newUserSession');
             $this->subscribe('afterLogout');
+        }
+
+        public function beforeActivate(){
+            $baseURL = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . "{$_SERVER['HTTP_HOST']}";
+            $this->set('redirectURL', $baseURL . '/index.php/admin/authentication/sa/login');
         }
 
         public function beforeLogin(){
