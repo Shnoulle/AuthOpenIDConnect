@@ -8,21 +8,25 @@
             'providerURL' => [
                 'type' => 'string',
                 'label' => 'Provider URL',
+                'help' => 'Required',
                 'default' => ''
             ],
             'clientID' => [
                 'type' => 'string',
                 'label' => 'Client ID',
+                'help' => 'Required',
                 'default' => ''
             ],
             'clientSecret' => [
                 'type' => 'string',
                 'label' => 'Client Secret',
+                'help' => 'Required',
                 'default' => ''
             ],
             'redirectURL' => [
                 'type' => 'string',
                 'label' => 'Redirect URL',
+                'help' => 'The Redirect URL is automatically set on plugin activation.',
                 'default' => '',
             ]
         ];
