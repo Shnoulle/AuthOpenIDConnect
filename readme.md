@@ -15,3 +15,6 @@ zip -r AuthOpenIDConnect AuthOpenIDConnect/*
 ```
 
 4. Install the plugin in LimeSurvey and fill in the necessary settings in order to connect to your ID Provider.
+
+## Credits
+Thanks to Michael Jett for providing the [OpenID Connect Client](https://github.com/jumbojett/OpenID-Connect-PHP)!
