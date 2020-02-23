@@ -58,34 +58,40 @@
                 return;
             }
 
-            if($oidc->authenticate()){
-                $username = $oidc->requestUserInfo('preferred_username');
-                $email = $oidc->requestUserInfo('email');
-                $givenName = $oidc->requestUserInfo('given_name');
-                $familyName = $oidc->requestUserInfo('family_name');
-
-                $user = $this->api->getUserByName($username);
-
-                if(empty($user)){
-                    $user = new User;
-                    $user->users_name = $username;
-                    $user->setPassword(createPassword());
-                    $user->full_name = $givenName.' '.$familyName;
-                    $user->parent_id = 1;
-                    $user->lang = $this->api->getConfigKey('defaultlang', 'en');
-                    $user->email = $email;
+            try {
+                if($oidc->authenticate()){
+                    $username = $oidc->requestUserInfo('preferred_username');
+                    $email = $oidc->requestUserInfo('email');
+                    $givenName = $oidc->requestUserInfo('given_name');
+                    $familyName = $oidc->requestUserInfo('family_name');
     
-                    if(!$user->save()){
-                        // Couldn't create user, navigate to authdb login.
-                        return;
+                    $user = $this->api->getUserByName($username);
+    
+                    if(empty($user)){
+                        $user = new User;
+                        $user->users_name = $username;
+                        $user->setPassword(createPassword());
+                        $user->full_name = $givenName.' '.$familyName;
+                        $user->parent_id = 1;
+                        $user->lang = $this->api->getConfigKey('defaultlang', 'en');
+                        $user->email = $email;
+        
+                        if(!$user->save()){
+                            // Couldn't create user, navigate to authdb login.
+                            return;
+                        }
+                        // User successfully created.
                     }
-                    // User successfully created.
+    
+                    $this->setUsername($user->users_name);
+                    $this->setAuthPlugin();
+                    return;
                 }
-
-                $this->setUsername($user->users_name);
-                $this->setAuthPlugin();
+            } catch (\Throwable $error) {
+                // Error occurred during authentication process, redirect to authdb login.
                 return;
             }
+            
         }
         
         public function newUserSession(){
