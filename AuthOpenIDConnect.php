@@ -5,24 +5,32 @@
     class AuthOpenIDConnect extends AuthPluginBase {
         protected $storage = 'DbStorage';
         protected $settings = [
+            'info' => [
+                'type' => 'info',
+                'content' => '<h1>OpenID Connect</h1><p>Please provide the following settings.</br>If necessary settings are missing, the default authdb login will be shown.</p>'
+            ],
             'providerURL' => [
                 'type' => 'string',
                 'label' => 'Provider URL',
+                'help' => 'Required',
                 'default' => ''
             ],
             'clientID' => [
                 'type' => 'string',
                 'label' => 'Client ID',
+                'help' => 'Required',
                 'default' => ''
             ],
             'clientSecret' => [
                 'type' => 'string',
                 'label' => 'Client Secret',
+                'help' => 'Required',
                 'default' => ''
             ],
             'redirectURL' => [
                 'type' => 'string',
                 'label' => 'Redirect URL',
+                'help' => 'The Redirect URL is automatically set on plugin activation.',
                 'default' => '',
             ]
         ];
@@ -30,9 +38,15 @@
         static protected $name = 'AuthOpenIDConnect';
 
         public function init(){
+            $this->subscribe('beforeActivate');
             $this->subscribe('beforeLogin');
             $this->subscribe('newUserSession');
             $this->subscribe('afterLogout');
+        }
+
+        public function beforeActivate(){
+            $baseURL = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . "{$_SERVER['HTTP_HOST']}";
+            $this->set('redirectURL', $baseURL . '/index.php/admin/authentication/sa/login');
         }
 
         public function beforeLogin(){
@@ -41,43 +55,52 @@
             $clientSecret = $this->get('clientSecret', null, null, false);
             $redirectURL = $this->get('redirectURL', null, null, false);
 
+            if(!$providerURL || !$clientSecret || !$clientID || !$redirectURL){
+                // Display authdb login if necessary plugin settings are missing.
+                return;
+            }
+
             $oidc = new OpenIDConnectClient($providerURL, $clientID, $clientSecret);
             $oidc->setRedirectURL($redirectURL);
             
             if(isset($_REQUEST['error'])){
-                $this->log('Authentication failed - received error from ID Provider.');
                 return;
             }
 
-            if($oidc->authenticate()){
-                $username = $oidc->requestUserInfo('preferred_username');
-                $email = $oidc->requestUserInfo('email');
-                $givenName = $oidc->requestUserInfo('given_name');
-                $familyName = $oidc->requestUserInfo('family_name');
-
-                $user = $this->api->getUserByName($username);
-
-                if(empty($user)){
-                    $user = new User;
-                    $user->users_name = $username;
-                    $user->setPassword(createPassword());
-                    $user->full_name = $givenName.' '.$familyName;
-                    $user->parent_id = 1;
-                    $user->lang = $this->api->getConfigKey('defaultlang', 'en');
-                    $user->email = $email;
+            try {
+                if($oidc->authenticate()){
+                    $username = $oidc->requestUserInfo('preferred_username');
+                    $email = $oidc->requestUserInfo('email');
+                    $givenName = $oidc->requestUserInfo('given_name');
+                    $familyName = $oidc->requestUserInfo('family_name');
     
-                    if(!$user->save()){
-                        $this->log('User could not be created.');
-                        return;
+                    $user = $this->api->getUserByName($username);
+    
+                    if(empty($user)){
+                        $user = new User;
+                        $user->users_name = $username;
+                        $user->setPassword(createPassword());
+                        $user->full_name = $givenName.' '.$familyName;
+                        $user->parent_id = 1;
+                        $user->lang = $this->api->getConfigKey('defaultlang', 'en');
+                        $user->email = $email;
+        
+                        if(!$user->save()){
+                            // Couldn't create user, navigate to authdb login.
+                            return;
+                        }
+                        // User successfully created.
                     }
     
-                    $this->log('User was successfully created.');
+                    $this->setUsername($user->users_name);
+                    $this->setAuthPlugin();
+                    return;
                 }
-
-                $this->setUsername($user->users_name);
-                $this->setAuthPlugin();
+            } catch (\Throwable $error) {
+                // Error occurred during authentication process, redirect to authdb login.
                 return;
             }
+            
         }
         
         public function newUserSession(){
